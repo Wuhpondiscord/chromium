@@ -79,7 +79,9 @@ The player UI showed last-known `960×192`; that is **not** the failing decoder 
 - `media/filters/decoder_stream.cc`: genuine reinitialization and selection support; initial-error fallback gated by `!decoder_produced_a_frame_`; post-output decode errors can become terminal.
 - Microsoft DXGI NV12 documentation: even texture dimensions required.
 
-## H. Lab 17 minimal instrumentation checklist (NOT YET IMPLEMENTED)
+## H. Lab 17 instrumentation checklist (SOURCE IMPLEMENTED; NOT COMPILED OR EXECUTED)
+
+The optional native tracing patch was committed on `research/lab17-vp9-native-diagnostics`, but there is no compiled browser build or native trace from that patch. Separately, stock Chrome WinDbg interception **did** succeed and captured an **8×8 R8_UNORM** texture; see [Lab 17 WinDbg evidence](LAB17_WINDBG_STOCK_CHROME_EVIDENCE.md). The `960×129` NV12 descriptor, HRESULT return, and fallback gate trace remain pending.
 
 **Native texture record** (at `CreateTexture2D`):
 - Coded VP9 size, visible rect, supplied texture-size argument, `D3D11_TEXTURE2D_DESC` full fields, adapter identity, return HRESULT.
@@ -116,4 +118,4 @@ Source logs were supplied as exported JSON and text in the research conversation
 **Expected:** valid VP9 remains decodable by a supported path or reports an appropriately scoped unsupported configuration.  
 **Observed:** software success; hardware-path failure; normal video playback terminates at reconfiguration.  
 **Repro:** hardware adapter identity, browser build, file hashes, JS control matrix, native error stacks, temporal logs.  
-**Proposed next evidence:** texture descriptor / HRESULT traces and actual error branch condition in `DecoderStream`.
+**Proposed next evidence:** the actual **odd NV12** texture descriptor plus matching return HRESULT and the live error branch condition in `DecoderStream`. The initial WinDbg capture was **8×8 R8_UNORM**, not VP9 NV12.

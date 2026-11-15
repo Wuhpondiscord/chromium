@@ -2,6 +2,10 @@
 
 **Status: D3D11 function interception confirmed; VP9-specific native texture descriptor NOT yet captured.** This document records the *actual* debugger transcript supplied after Labs 15–16 and corrects an external claim that this initial 8×8 allocation proved the odd-height NV12 mismatch.
 
+## Subsequent session update
+
+This file records the **first** 8×8 R8_UNORM interception. Further experiments have now achieved a **960×720 NV12 request**, captured its **`S_OK`** return, and logged **1,050 NV12 request-entry events** along a complete 960×720→960×128 descending series. See [Lab 17 NV12 dimension trace](LAB17_NV12_DIMENSION_TRACE.md) for validated aggregates and exact limits. **No odd 960×129 NV12 descriptor or corresponding failing HRESULT has been captured.**
+
 ## Scope and chronology
 
 - Tested installed Chrome: `C:\Program Files\Google\Chrome\Application\157.0.8103.79\chrome.exe`; Windows 11; NVIDIA user-mode graphics driver present.

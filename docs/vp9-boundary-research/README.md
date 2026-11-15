@@ -3,13 +3,23 @@
 **Research date:** 2026-11-15 (America/Detroit)  
 **Status:** reproducible compatibility and decoder-recovery failures; security impact **not demonstrated**.  
 **Target tested:** Google Chrome 157.0.8103.79, Windows 11 build 22631.4317, NVIDIA RTX 4080 SUPER, NVIDIA 32.0.16.1088, active adapter LUID `{0,98569}`; integrated AMD GPU also installed but *not* shown to decode these test cases.  
-**Branch:** `research/vp9-boundary-findings-labs15-16`, branched from `research/lab15-vp9-config-diagnostics`. This is **research documentation**, not a production patch.
+**Current active branch:** `research/lab17-vp9-native-diagnostics` (inherits `research/vp9-boundary-findings-labs15-16` and `research/lab15-vp9-config-diagnostics`). This is research documentation and opt-in source instrumentation, not a production patch. The WinDbg investigation uses **unmodified stock Chrome**.
 
 ## Reports
 
 1. [Issue A — VP9 odd dimensions accepted but D3D11 NV12 output texture creation fails](ISSUE_A_ODD_NV12.md)
 2. [Issue B — decoder failure following mid-stream 960×128→960×120 transition](ISSUE_B_RECONFIG_FALLBACK.md)
 3. [Experimental record, reproducibility, limitations, and Lab 17 plan](EXPERIMENTS_AND_LAB17.md)
+4. [Lab 17 stock-Chrome WinDbg evidence — actual 8×8 R8 texture descriptor, not odd NV12](LAB17_WINDBG_STOCK_CHROME_EVIDENCE.md)
+5. [Lab 17 optional native instrumentation and execution runbook](LAB17_NATIVE_DIAGNOSTICS.md)
+
+## Lab 17 progress update — 2026-11-15, 19:27 local (America/Detroit)
+
+**Confirmed newly:** WinDbg attached to stock Chrome, loaded public D3D11 symbols, resolved `d3d11!CDevice::CreateTexture2D`, installed a real breakpoint, and intercepted a native texture creation call. At the function's entry point, `RDX` pointed to a valid 44-byte `D3D11_TEXTURE2D_DESC` whose values were **Width=8, Height=8, Format=61 (`DXGI_FORMAT_R8_UNORM`)**, MipLevels=1, ArraySize=1, SampleCount=1, Usage=DEFAULT, BindFlags=8, CPUAccess=0, MiscFlags=0. The call was from Chrome's GPU process, but **no evidence ties this specific 8×8 allocation to VP9 decoding**.
+
+**Still missing:** the odd-size `960×129` + NV12 (Format 103) descriptor and the **same call's return HRESULT**; the live `decoder_produced_a_frame_` state/branch selection during the separate HTML playback 960×128→960×120 error. No final root-cause proof, native crash or security exploit is claimed. The 8×8 capture *validates the interception technique*, not the odd NV12 hypothesis.
+
+See [full WinDbg evidence](LAB17_WINDBG_STOCK_CHROME_EVIDENCE.md). A third-party statement that the 8×8 descriptor was the final “smoking gun” is incorrect.
 
 ## Executive assessment
 

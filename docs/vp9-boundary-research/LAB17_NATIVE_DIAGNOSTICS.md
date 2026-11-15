@@ -2,6 +2,14 @@
 
 **Status:** Source instrumentation pushed; not compiled or executed in a Windows Chromium build. No native Lab 17 results or fixes are claimed.
 
+## Lab 17 actual progress — stock Chrome alternative
+
+**As of 2026-11-15, WinDbg successfully intercepted `d3d11!CDevice::CreateTexture2D` in stock Chrome.** The observed descriptor was **8×8, `DXGI_FORMAT_R8_UNORM` (61)**, not an odd NV12 texture; the single captured call's HRESULT was not traced. The instrumented source modifications described below are committed but **have never been compiled or executed**. The stock-Chrome method does not use this instrumented branch.
+
+- [WinDbg evidence and exact breakpoint/descriptor transcript](LAB17_WINDBG_STOCK_CHROME_EVIDENCE.md)
+- For future targeted stock-Chrome debugging, condition the breakpoint on `DXGI_FORMAT_NV12` (103) and then inspect `960×129` before claiming the parity root cause.
+- For HTML fallback, retain `chrome://media-internals` and software-only controls. Direct inspection of `decoder_produced_a_frame_` and the branch still requires adequate symbols or an instrumented build.
+
 ## Files instrumented
 
 - media/gpu/windows/d3d_decoder_configurator.cc: LAB17_D3D11_TEXTURE_REQUEST and LAB17_D3D11_TEXTURE_RESULT around ID3D11Device::CreateTexture2D. Records caller size, actual texture descriptor width/height/format, array size, mip levels, binding/miscellaneous flags, usage, CPU access, sample properties, shared-handle mode and HRESULT.

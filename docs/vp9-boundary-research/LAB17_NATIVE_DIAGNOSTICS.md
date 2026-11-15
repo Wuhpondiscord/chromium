@@ -10,6 +10,14 @@
 - For future targeted stock-Chrome debugging, condition the breakpoint on `DXGI_FORMAT_NV12` (103) and then inspect `960×129` before claiming the parity root cause.
 - For HTML fallback, retain `chrome://media-internals` and software-only controls. Direct inspection of `decoder_produced_a_frame_` and the branch still requires adequate symbols or an instrumented build.
 
+### Stock Chrome results now obtained
+
+- A native `960×720` `DXGI_FORMAT_NV12` texture request was captured, and the **same call returned `S_OK`**.
+- A later native logpoint captured **1,050 NV12 requests** (75 heights from 720 down to 128, each observed 14 times), all width 960; **no 960×120 or 960×129 NV12 request** during that original-WebM logging run.
+- Two equivalent uploaded log exports were cross-checked; results are one test, **not independently replicated runs**.
+- The optional source instrumentation described below **still has not been compiled or tested**.
+- Full evidence: [Lab 17 NV12 allocation trace](LAB17_NV12_DIMENSION_TRACE.md).
+
 ## Files instrumented
 
 - media/gpu/windows/d3d_decoder_configurator.cc: LAB17_D3D11_TEXTURE_REQUEST and LAB17_D3D11_TEXTURE_RESULT around ID3D11Device::CreateTexture2D. Records caller size, actual texture descriptor width/height/format, array size, mip levels, binding/miscellaneous flags, usage, CPU access, sample properties, shared-handle mode and HRESULT.

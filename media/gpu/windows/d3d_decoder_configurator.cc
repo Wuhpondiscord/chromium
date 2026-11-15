@@ -9,6 +9,7 @@
 #include <dxva2api.h>
 
 #include "base/feature_list.h"
+#include "base/logging.h"
 #include "media/base/media_log.h"
 #include "media/base/media_switches.h"
 #include "media/base/video_codecs.h"
@@ -192,9 +193,35 @@ D3DDecoderConfigurator::CreateD3D11OutputTexture(ComD3D11Device device,
     output_texture_desc_.MiscFlags = D3D11_RESOURCE_MISC_SHARED;
   }
 
+  // Lab 17: log metadata only, never video contents. Enable with
+  // --enable-logging=stderr --vmodule=d3d_decoder_configurator=1.
+  // Important: the coded/visible VP9 size is not necessarily the backing size.
+  const auto& desc = output_texture_desc_;
+  VLOG(1) << "LAB17_D3D11_TEXTURE_REQUEST"
+          << " requested_width=" << size.width()
+          << " requested_height=" << size.height()
+          << " width=" << desc.Width
+          << " height=" << desc.Height
+          << " format=" << static_cast<int>(desc.Format)
+          << " array_size=" << desc.ArraySize
+          << " mip_levels=" << desc.MipLevels
+          << " bind_flags=" << desc.BindFlags
+          << " misc_flags=" << desc.MiscFlags
+          << " usage=" << static_cast<int>(desc.Usage)
+          << " cpu_access_flags=" << desc.CPUAccessFlags
+          << " sample_count=" << desc.SampleDesc.Count
+          << " sample_quality=" << desc.SampleDesc.Quality
+          << " shared_handle=" << use_shared_handle;
+
   ComD3D11Texture2D texture;
   HRESULT hr =
       device->CreateTexture2D(&output_texture_desc_, nullptr, &texture);
+  VLOG(1) << "LAB17_D3D11_TEXTURE_RESULT"
+          << " width=" << desc.Width
+          << " height=" << desc.Height
+          << " format=" << static_cast<int>(desc.Format)
+          << " hresult=0x" << std::hex << static_cast<unsigned long>(hr)
+          << std::dec;
   if (FAILED(hr)) {
     return base::unexpected(
         D3DStatus{D3DStatus::Codes::kCreateDecoderOutputTextureFailed, hr});

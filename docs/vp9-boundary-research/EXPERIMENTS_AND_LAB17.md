@@ -106,6 +106,10 @@ The optional native tracing patch was committed on `research/lab17-vp9-native-di
 4. Decide if it's an implementation bug, deliberate limitation, or a security issue based on actual impact.
 5. For any future native crash or sanitizer report, preserve the stack/minidump and investigate separately; no present claim of such a crash.
 
+### Lab 17 stock-Chrome debugger progress (subsequent to the initial report)
+
+A stock-Chrome debugger returned **`RAX=0` (`S_OK`)** after stepping out of a native **960×720 NV12** texture allocation. Its later NV12-only logging run showed **1,050 calls**, **75** distinct heights from **720** to **128** in decrements of **8**, with **14 requests per height** and **no odd dimensions, 120, or 129** in that one session. The original descending-resolution WebM was played; the isolated synthetic 960×129 Lab 16 test has **not** been documented as run within this debugger capture. Thus this trace supports texture-boundary observation for Finding B but **does not establish** the odd-texture descriptor/root cause for Finding A. An earlier 8×8 R8_UNORM capture was unrelated to video. See [NV12 trace](LAB17_NV12_DIMENSION_TRACE.md) and [initial debugger capture](LAB17_WINDBG_STOCK_CHROME_EVIDENCE.md). Neither the logs nor the manual WinDbg breaks establish GPU process crashes or memory unsafety.
+
 ## I. Evidence location and privacy
 
 Source logs were supplied as exported JSON and text in the research conversation. This branch records **derived technical observations**, not raw browsing or user account metadata. Suggested local archive names: `funkyms-vp9-vendor-comparison-v15.json`, `funkyms-vp9-boundary-v16.json`, `chrome-gpu-monitor.csv`, and `media-internals-normal-playback.json`. These are *evidence labels*, not a claim that the raw files have been committed to GitHub.

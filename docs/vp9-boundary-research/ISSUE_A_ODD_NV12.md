@@ -107,6 +107,10 @@ Instrument the *existing branch* without altering the Microsoft/NVIDIA API imple
 
 **Success criterion:** odd-sized valid VP9 keyframes either decode correctly or consistently select a compatible path without a late D3D invalid-argument failure. **Failure criterion:** backing texture creation succeeds but downstream decoder cannot use the padded resource, in which case an explicit pre-selection/software path may be preferable.
 
+## Lab 17 status — native odd-size request still unverified
+
+Stock-Chrome WinDbg can now intercept the D3D11 texture descriptor and returned HRESULT. A **960×720 NV12 request returned `S_OK`**, while an earlier **8×8 R8_UNORM** request was unrelated to VP9 output. In a later original-WebM playback logging run, **1,050 NV12 requests** all had even heights from 720 to 128 and width 960; **none had height 129**. This run did **not** explicitly execute the *synthetic* 960×129 test from Lab 16, so it does not refute its reproducible hardware-path failure or establish the invalid-descriptor hypothesis. **The failing `960×129/NV12` entry plus same-call `E_INVALIDARG` return have not been obtained.** See [Lab 17 full trace](LAB17_NV12_DIMENSION_TRACE.md).
+
 ## 8. Reproduction / evidence provenance
 
 - Original WebM: `funkyms_4.webm`, SHA-256 `78589f127fe4436f71003f6652ade3b99a85a7691c7d4d1d70aed9f9b3666e10`.

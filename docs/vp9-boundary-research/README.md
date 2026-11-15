@@ -13,6 +13,7 @@
 4. [Lab 17 stock-Chrome WinDbg evidence — actual 8×8 R8 texture descriptor, not odd NV12](LAB17_WINDBG_STOCK_CHROME_EVIDENCE.md)
 5. [Lab 17 optional native instrumentation and execution runbook](LAB17_NATIVE_DIAGNOSTICS.md)
 6. [Lab 17 NV12 allocation trace — 1,050 native calls, heights 720→128](LAB17_NV12_DIMENSION_TRACE.md)
+7. [Lab 18 two-frame VP9 transition — native D3D11 configuration-count comparison (128px: 2, 120px: 0)](LAB18_TWO_FRAME_D3D11_CONFIG_COUNT.md)
 
 ## Lab 17 progress update — 2026-11-15, 19:27 local (America/Detroit)
 
@@ -70,3 +71,7 @@ This research currently documents **functional media compatibility/robustness de
 - Repository source: `media/gpu/windows/d3d_decoder_configurator.cc`; `media/gpu/windows/supported_profile_helpers.cc`; `media/filters/decoder_stream.cc`.
 
 **Source provenance note:** URLs to Chromium tracker issues `40684757` and `41453795`, cited in the external write-up, were not accessible with enough issue content to verify their subject, status, fix, or relationship to these findings. They are **not** used as proof of an established duplicate or vulnerability.
+
+## Lab 18 update — native configuration count established (2026-11-15)
+
+A two-frame 960×128→960×120 source-packet-copy WebM reproduces the normal HTML player's `PIPELINE_ERROR_DECODE` under the D3D11 hardware decoder. WinDbg directly captured `d3d11!CDevice::GetVideoDecoderConfigCount` returning **`S_OK` and count=2 at 960×128** versus **`S_OK` and count=0 at 960×120** with the same VP9 decoder GUID and NV12 format. This confirms the *immediate configuration-count rejection* but does not establish a GPU crash, a driver defect, or a requirement for Chromium to recover midstream. The two-frame extract initially advertises 960×720 at the container-track level, which remains a confounder; single-frame A/C hardware-decoder selection has not been established. See [Lab 18 detailed evidence](LAB18_TWO_FRAME_D3D11_CONFIG_COUNT.md).

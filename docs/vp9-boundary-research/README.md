@@ -14,6 +14,7 @@
 5. [Lab 17 optional native instrumentation and execution runbook](LAB17_NATIVE_DIAGNOSTICS.md)
 6. [Lab 17 NV12 allocation trace — 1,050 native calls, heights 720→128](LAB17_NV12_DIMENSION_TRACE.md)
 7. [Lab 18 two-frame VP9 transition — native D3D11 configuration-count comparison (128px: 2, 120px: 0)](LAB18_TWO_FRAME_D3D11_CONFIG_COUNT.md)
+8. [Lab 20 decoder lifetime and GPU-resource audit — source protections, monitoring limits, Lab 21 plan](LAB20_DECODER_LIFETIME_AUDIT.md)
 
 ## Lab 17 progress update — 2026-11-15, 19:27 local (America/Detroit)
 

@@ -311,10 +311,21 @@ std::unique_ptr<D3D11VideoDecoderWrapper> D3D11VideoDecoderWrapper::Create(
     const D3DDecoderConfigurator* decoder_configurator,
     VideoDecoderConfig config) {
   UINT config_count = 0;
-  HRESULT hr = video_device->GetVideoDecoderConfigCount(
-      decoder_configurator->D3D11DecoderDescriptor(), &config_count);
+  const D3D11_VIDEO_DECODER_DESC* desc =
+      decoder_configurator->D3D11DecoderDescriptor();
+  HRESULT hr = video_device->GetVideoDecoderConfigCount(desc, &config_count);
+  // Lab 15: Distinguish a failing HRESULT from an S_OK query returning
+  // zero supported configurations. These are different failure modes.
+  MEDIA_LOG(INFO, media_log)
+      << "Lab15 GetVideoDecoderConfigCount: width=" << desc->SampleWidth
+      << " height=" << desc->SampleHeight
+      << " output_format=" << static_cast<int>(desc->OutputFormat)
+      << " hr=" << static_cast<unsigned long>(hr)
+      << " config_count=" << config_count;
   if (FAILED(hr) || config_count == 0) {
-    MEDIA_PLOG(ERROR, hr, media_log) << "GetVideoDecoderConfigCount failed";
+    MEDIA_PLOG(ERROR, hr, media_log)
+        << "GetVideoDecoderConfigCount failed"
+        << (FAILED(hr) ? " (HRESULT failure)" : " (zero configurations)");
     return nullptr;
   }
 
@@ -355,6 +366,11 @@ std::unique_ptr<D3D11VideoDecoderWrapper> D3D11VideoDecoderWrapper::Create(
   hr = video_device->CreateVideoDecoder(
       decoder_configurator->D3D11DecoderDescriptor(), &dec_config,
       &video_decoder);
+  MEDIA_LOG(INFO, media_log)
+      << "Lab15 CreateVideoDecoder: width=" << desc->SampleWidth
+      << " height=" << desc->SampleHeight
+      << " hr=" << static_cast<unsigned long>(hr)
+      << " created=" << (SUCCEEDED(hr) && video_decoder != nullptr);
   if (FAILED(hr)) {
     MEDIA_PLOG(ERROR, hr, media_log) << "CreateVideoDecoder failed";
     return nullptr;

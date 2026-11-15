@@ -12,6 +12,7 @@
 3. [Experimental record, reproducibility, limitations, and Lab 17 plan](EXPERIMENTS_AND_LAB17.md)
 4. [Lab 17 stock-Chrome WinDbg evidence — actual 8×8 R8 texture descriptor, not odd NV12](LAB17_WINDBG_STOCK_CHROME_EVIDENCE.md)
 5. [Lab 17 optional native instrumentation and execution runbook](LAB17_NATIVE_DIAGNOSTICS.md)
+6. [Lab 17 NV12 allocation trace — 1,050 native calls, heights 720→128](LAB17_NV12_DIMENSION_TRACE.md)
 
 ## Lab 17 progress update — 2026-11-15, 19:27 local (America/Detroit)
 
@@ -20,6 +21,14 @@
 **Still missing:** the odd-size `960×129` + NV12 (Format 103) descriptor and the **same call's return HRESULT**; the live `decoder_produced_a_frame_` state/branch selection during the separate HTML playback 960×128→960×120 error. No final root-cause proof, native crash or security exploit is claimed. The 8×8 capture *validates the interception technique*, not the odd NV12 hypothesis.
 
 See [full WinDbg evidence](LAB17_WINDBG_STOCK_CHROME_EVIDENCE.md). A third-party statement that the 8×8 descriptor was the final “smoking gun” is incorrect.
+
+## New Lab 17 evidence — after the initial 8×8 capture
+
+Stock Chrome WinDbg **successfully** intercepted a **960×720 NV12** texture request and, after `gu`, recorded **`RAX=0` (`S_OK`)** for that same call. This is a successful even-dimension control; **not the odd-size failing call**.
+
+The subsequent all-NV12 logpoint recorded **1,050 `CreateTexture2D` entry events** across **75 distinct dimensions**, every one width **960**, format **103/NV12**, and heights **720, 712, 704, ..., 136, 128**; **exactly 14 entries per height**, with **zero odd dimensions**, **zero 960×120** and **zero 960×129** requests in that recorded session. Both uploaded versions of this **same** log yield identical aggregates. Logging ended after a **manual debugger break** and `.logclose`, not a proven process crash. These entries do not themselves establish success HRESULTs.
+
+This trace is **consistent with** Finding B's known 960×128→960×120 failure boundary but does not prove why the 120 configuration was rejected or show fallback-state internals. It was the original WebM, **not** the isolated Lab 16 synthetic 960×129 test, so it cannot settle Finding A's descriptor parity hypothesis. See [the full trace report](LAB17_NV12_DIMENSION_TRACE.md). WinDbg's compound `&&` expressions caused parser errors; accepted nested conditions and the working logpoint are documented there.
 
 ## Executive assessment
 

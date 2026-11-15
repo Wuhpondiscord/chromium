@@ -373,6 +373,8 @@ void DecoderStream<StreamType>::SkipPrepareUntil(
 
 template <DemuxerStream::Type StreamType>
 void DecoderStream<StreamType>::BeginDecoderSelection() {
+  VLOG(1) << "LAB17_DECODER_BEGIN_SELECTION"
+          << " stream_type=" << static_cast<int>(StreamType);
   decoder_selector_.BeginDecoderSelection(
       base::BindOnce(&DecoderStream<StreamType>::OnDecoderSelected,
                      weak_factory_.GetWeakPtr()),
@@ -383,6 +385,9 @@ void DecoderStream<StreamType>::BeginDecoderSelection() {
 template <DemuxerStream::Type StreamType>
 void DecoderStream<StreamType>::ResumeDecoderSelection(
     DecoderStatus&& reinit_cause) {
+  VLOG(1) << "LAB17_DECODER_RESUME_SELECTION"
+          << " stream_type=" << static_cast<int>(StreamType)
+          << " cause=" << static_cast<int>(reinit_cause.code());
   decoder_selector_.ResumeDecoderSelection(
       base::BindOnce(&DecoderStream<StreamType>::OnDecoderSelected,
                      weak_factory_.GetWeakPtr()),
@@ -635,6 +640,18 @@ void DecoderStream<StreamType>::OnDecodeDone(
   if (reset_cb_)
     return;
 
+  if (!status.is_ok()) {
+    VLOG(1) << "LAB17_DECODER_STATUS"
+            << " stream_type=" << static_cast<int>(StreamType)
+            << " status=" << static_cast<int>(status.code())
+            << " produced_frame=" << decoder_produced_a_frame_
+            << " fallback_feature="
+            << base::FeatureList::IsEnabled(kFallbackAfterDecodeError)
+            << " pending_requests=" << pending_decode_requests_
+            << " end_of_stream=" << end_of_stream
+            << " state=" << static_cast<int>(state_);
+  }
+
   switch (status.code()) {
     case DecoderStatus::Codes::kAborted:
       // Decoder can return kAborted during Reset() or during destruction.
@@ -678,6 +695,14 @@ void DecoderStream<StreamType>::OnDecodeDone(
       return;
 
     default:
+      VLOG(1) << "LAB17_DECODER_FALLBACK_DECISION"
+              << " eligible="
+              << (!decoder_produced_a_frame_ &&
+                  base::FeatureList::IsEnabled(kFallbackAfterDecodeError))
+              << " produced_frame=" << decoder_produced_a_frame_
+              << " fallback_feature="
+              << base::FeatureList::IsEnabled(kFallbackAfterDecodeError)
+              << " status=" << static_cast<int>(status.code());
       if (!decoder_produced_a_frame_ &&
           base::FeatureList::IsEnabled(kFallbackAfterDecodeError)) {
         MEDIA_LOG(WARNING, media_log_)
@@ -735,6 +760,9 @@ void DecoderStream<StreamType>::OnDecodeOutputReady(
   // Note: |fallback_buffers_| might still have buffers, and we will keep
   // reading from there before requesting new buffers from |stream_|.
   if (!decoder_produced_a_frame_) {
+    VLOG(1) << "LAB17_DECODER_FIRST_OUTPUT"
+            << " stream_type=" << static_cast<int>(StreamType)
+            << " timestamp_ms=" << output->timestamp().InMilliseconds();
     decoder_produced_a_frame_ = true;
     decoder_selector_.FinalizeDecoderSelection();
     pending_buffers_.clear();
@@ -982,6 +1010,9 @@ void DecoderStream<StreamType>::OnBuffersReady(
 template <DemuxerStream::Type StreamType>
 void DecoderStream<StreamType>::ReinitializeDecoder() {
   FUNCTION_DVLOG(2);
+  VLOG(1) << "LAB17_DECODER_REINITIALIZE"
+          << " stream_type=" << static_cast<int>(StreamType)
+          << " produced_frame=" << decoder_produced_a_frame_;
   DCHECK(task_runner_->RunsTasksInCurrentSequence());
   DCHECK_EQ(state_, State::kStateFlushingDecoder);
   DCHECK_EQ(pending_decode_requests_, 0);

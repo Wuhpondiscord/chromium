@@ -99,6 +99,10 @@ The `kFallbackAfterDecodeError` feature exists and is enabled by default in upst
 5. Explore carefully scoped prototype recovery only in a local Chromium test build: drain/cancel outstanding work, preserve appropriate keyframe replay boundaries, and verify no stale frames/shared-image handles survive device switch.
 6. Add a regression test asserting either documented graceful software recovery or a deliberate, well-explained and non-crashing error policy.
 
+## Lab 17 stock-Chrome trace — 960×128 boundary observation
+
+A working WinDbg `CreateTexture2D` NV12 logpoint captured **1,050** native request entries from original-WebM playback: width 960 throughout, heights 720→128 in exact 8-pixel decrements (75 distinct heights, 14 requests each). **No 960×120 NV12 allocation request was captured** before the manually stopped recording. This is consistent with, but **does not independently prove**, the existing media-internals diagnosis of an unusable decoder configuration at 960×120. These are allocation attempts, not a record of decoder configuration queries or the actual `DecoderStream` fallback branch. No resource-lifetime fault, GPU crash, or state desynchronization was observed. See [Lab 17 native trace](LAB17_NV12_DIMENSION_TRACE.md).
+
 ## 7. Primary references / limitations
 
 - Repository source: `media/filters/decoder_stream.cc` (`OnDecodeOutputReady`, `OnDecodeDone`, `ReinitializeDecoder`, `CompleteDecoderReinitialization`).

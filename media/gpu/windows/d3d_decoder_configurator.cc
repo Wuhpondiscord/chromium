@@ -4,6 +4,8 @@
 
 #include "media/gpu/windows/d3d_decoder_configurator.h"
 
+#include <iomanip>
+
 #include <d3d11.h>
 #include <d3d9.h>
 #include <dxva2api.h>

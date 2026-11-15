@@ -112,3 +112,16 @@ A working WinDbg `CreateTexture2D` NV12 logpoint captured **1,050** native reque
 - Reproduction source file SHA-256: `78589f127fe4436f71003f6652ade3b99a85a7691c7d4d1d70aed9f9b3666e10`.
 
 A third-party summary linked Chromium issue 40684757 but issue contents were unavailable for verification. **No claim of an established duplicate, known unfixed bug, or official triage outcome is made here.**
+
+## Lab 18 update — confirmed native D3D11 configuration-count boundary (2026-11-15)
+
+A minimal source-packet-copy WebM containing two consecutive VP9 keyframes (960×128 → 960×120) reproduces the normal HTML player failure. In the uploaded `chrome://media-internals` log, **`D3D11VideoDecoder`** is selected and the two in-band config changes precede `GetVideoDecoderConfigCount failed ... (0x0)`, `D3DStatus::10`, and `PIPELINE_ERROR_DECODE`. The remuxed WebM's initial track metadata still advertises 960×720; this is a known confounder, and the A/C single-frame clips' decoder selection is not yet verified.
+
+**Native WinDbg comparison using the same decoder GUID, NV12 output, and D3D11 function:**
+
+| Request | HRESULT | Configuration count |
+|---|---|---|
+| 960×128 NV12 | `S_OK` / `0x00000000` | **2** |
+| 960×120 NV12 | `S_OK` / `0x00000000` | **0** |
+
+This **confirms the immediate native reason** for the wrapper failure: zero D3D11 configurations for the 120px height, despite API success. It does **not** establish that the driver is defective or that Chromium is obligated to fall back midstream. Prior Lab 17 evidence remains relevant and unchanged. See the complete [Lab 18 native transcript and reproduction notes](LAB18_TWO_FRAME_D3D11_CONFIG_COUNT.md).

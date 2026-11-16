@@ -702,4 +702,54 @@ TEST_F(D3DVideoDecoderTest,
   Mock::VerifyAndClearExpectations(mock_d3d11_device_context_.Get());
 }
 
+
+TEST_F(D3DVideoDecoderTest,
+       Lab24ZeroConfigsDuringRecreationReturnsDecodeError) {
+  // Characterization of the 960x128 -> 960x120 failure boundary seen in
+  // stock Chrome: S_OK and a zero configuration count must be reported as
+  // a decoder failure, not used to create a decoder or an output buffer.
+  CreateDecoder();
+
+  VideoDecoderConfig initial =
+      TestVideoConfig::NormalCodecProfile(VideoCodec::kH264, H264PROFILE_MAIN);
+  InitializeDecoder(initial, /*expect_success=*/true);
+
+  // This fixture uses H264 to isolate the D3D11 wrapper state transition.
+  // It is NOT a VP9 bitstream test and does not exercise asynchronous
+  // D3DTextureWrapper::GpuResources initialization.
+  VideoDecoderConfig changed = TestVideoConfig::Large(VideoCodec::kH264);
+
+  auto mock_decoder = std::make_unique<NiceMock<MockAcceleratedVideoDecoder>>();
+  ON_CALL(*mock_decoder, GetProfile())
+      .WillByDefault(Return(changed.profile()));
+  ON_CALL(*mock_decoder, GetPicSize())
+      .WillByDefault(Return(changed.coded_size()));
+  ON_CALL(*mock_decoder, GetVisibleRect())
+      .WillByDefault(Return(changed.visible_rect()));
+  ON_CALL(*mock_decoder, GetBitDepth()).WillByDefault(Return(8u));
+  ON_CALL(*mock_decoder, GetChromaSampling())
+      .WillByDefault(Return(VideoChromaSampling::k420));
+  ON_CALL(*mock_decoder, GetVideoColorSpace())
+      .WillByDefault(Return(changed.color_space_info()));
+  EXPECT_CALL(*mock_decoder, Decode())
+      .WillOnce(Return(AcceleratedVideoDecoder::kConfigChange));
+  SetAcceleratedVideoDecoder(std::move(mock_decoder));
+
+  EXPECT_CALL(*mock_d3d11_video_device_.Get(),
+              GetVideoDecoderConfigCount(_, _))
+      .WillOnce([](const D3D11_VIDEO_DECODER_DESC*, UINT* count) {
+        *count = 0;
+        return S_OK;
+      });
+  EXPECT_CALL(*mock_d3d11_video_device_.Get(), CreateVideoDecoder(_, _, _))
+      .Times(0);
+
+  const std::array<uint8_t, 1> bitstream = {1};
+  base::test::TestFuture<DecoderStatus> decode_future;
+  decoder_->Decode(DecoderBuffer::CopyFrom(bitstream),
+                   decode_future.GetCallback());
+  EXPECT_FALSE(decode_future.Get().is_ok());
+  EXPECT_EQ(GetPictureBufferCount(), 0u);
+}
+
 }  // namespace media

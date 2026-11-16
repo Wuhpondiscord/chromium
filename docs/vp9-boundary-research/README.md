@@ -5,6 +5,10 @@
 **Target tested:** Google Chrome 157.0.8103.79, Windows 11 build 22631.4317, NVIDIA RTX 4080 SUPER, NVIDIA 32.0.16.1088, active adapter LUID `{0,98569}`; integrated AMD GPU also installed but *not* shown to decode these test cases.  
 **Current active branch:** `research/lab17-vp9-native-diagnostics` (inherits `research/vp9-boundary-findings-labs15-16` and `research/lab15-vp9-config-diagnostics`). This is research documentation and opt-in source instrumentation, not a production patch. The WinDbg investigation uses **unmodified stock Chrome**.
 
+## Master research archive
+
+**[Complete master archive — full Labs 15–25 synthesis, all 11 primary reports reproduced verbatim, future file-format research playbook](COMPLETE_RESEARCH_ARCHIVE_LABS15-25.md)**
+
 ## Reports
 
 1. [Issue A — VP9 odd dimensions accepted but D3D11 NV12 output texture creation fails](ISSUE_A_ODD_NV12.md)
